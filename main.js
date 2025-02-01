@@ -15,7 +15,7 @@ let userCity = "Unknown";
 // Default coordinates (used if geolocation is denied)
 let lat = 10.8231, lon = 106.6297; 
 
-// OpenWeatherMap API key (your key)
+// OpenWeatherMap API key (your provided key)
 const apiKey = "8e6673a84806c8cda8ac340bcf071274";
 
 // Build the weather API URL using current coordinates
@@ -66,15 +66,15 @@ function getLocationAndFetchWeather() {
 
 getLocationAndFetchWeather();
 
-// Load image assets
+// Load image assets using dummyimage.com URLs
 const humanImage = new Image();
-humanImage.src = "https://via.placeholder.com/50?text=Human";  // Replace with a human sprite if available
+humanImage.src = "https://dummyimage.com/50x50/000/fff&text=Human";  // Human sprite
 
 const enemyImage = new Image();
-enemyImage.src = "https://via.placeholder.com/50?text=Enemy";    // Replace with your enemy sprite if available
+enemyImage.src = "https://dummyimage.com/50x50/ff0000/fff&text=Enemy";    // Enemy sprite
 
 const obstacleImage = new Image();
-obstacleImage.src = "https://via.placeholder.com/50?text=Obs";     // Replace with your obstacle sprite if available
+obstacleImage.src = "https://dummyimage.com/50x50/000/fff&text=Obs";     // Obstacle sprite
 
 // Define the human character object
 const character = {
@@ -190,9 +190,9 @@ function gameLoop() {
   // Choose background color based on weather condition
   let bgColor;
   if (weatherCondition === "Rain") {
-    bgColor = "#5F9EA0"; // cloudy-blue tone for rain
+    bgColor = "#5F9EA0"; // cloudy-blue for rain
   } else if (weatherCondition === "Snow") {
-    bgColor = "#FFFafa"; // pale wintry tone for snow
+    bgColor = "#FFFafa"; // pale wintry for snow
   } else {
     bgColor = "#87CEEB"; // default clear sky blue
   }
@@ -238,7 +238,7 @@ function gameLoop() {
 
 gameLoop();
 
-// Adjust canvas size on window resize
+// Adjust canvas on window resize
 window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;

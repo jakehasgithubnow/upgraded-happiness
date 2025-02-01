@@ -8,16 +8,16 @@ canvas.height = window.innerHeight;
 let bgX = 0;
 const bgSpeed = 2;
 
-// Weather condition variable (default to "Clear")
+// Weather variables (default values)
 let weatherCondition = "Clear";
+let userCity = "Unknown";
 
-// Default coordinates (fallback if user denies geolocation)
+// Default coordinates (used if geolocation is denied)
 let lat = 10.8231, lon = 106.6297; 
 
 // OpenWeatherMap API key (your provided key)
 const apiKey = "8e6673a84806c8cda8ac340bcf071274";
-
-// Update the weather API URL using the current lat/lon
+// Build the weather API URL using current coordinates
 function updateWeatherUrl() {
   return `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
 }
@@ -35,16 +35,17 @@ async function fetchWeather() {
     }
     const data = await response.json();
     console.log("Weather data received:", data);
-    // Use the main condition (e.g., "Rain", "Snow", "Clear")
     weatherCondition = data.weather[0].main;
+    userCity = data.name;
     console.log("Updated weather condition:", weatherCondition);
+    console.log("User city:", userCity);
   } catch (error) {
     console.error("Fetch error:", error);
     weatherCondition = "Clear";
   }
 }
 
-// Use the browser's geolocation to get the user's current position
+// Use the browser's geolocation to get the user's coordinates and fetch weather data
 function getLocationAndFetchWeather() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -54,7 +55,6 @@ function getLocationAndFetchWeather() {
       fetchWeather();
     }, (error) => {
       console.error("Geolocation error:", error);
-      // If geolocation fails, use default coordinates and fetch weather
       fetchWeather();
     });
   } else {
@@ -65,18 +65,103 @@ function getLocationAndFetchWeather() {
 
 getLocationAndFetchWeather();
 
-// Define a simple character object
+// Load image assets
+const humanImage = new Image();
+humanImage.src = "https://via.placeholder.com/50?text=Human";  // Replace with your human sprite
+
+const enemyImage = new Image();
+enemyImage.src = "https://via.placeholder.com/50?text=Enemy";    // Replace with your enemy sprite
+
+const obstacleImage = new Image();
+obstacleImage.src = "https://via.placeholder.com/50?text=Obs";     // Replace with your obstacle sprite
+
+// Define the human character object
 const character = {
   x: 100,
-  y: canvas.height - 150, // positioned above the ground
+  y: canvas.height - 150, // Positioned above the ground
   width: 50,
   height: 50,
-  color: "#FF00FF", // magenta
   speed: 5,
   vx: 0
 };
 
-// Keyboard controls to move the character left/right
+// Arrays to store enemies and obstacles
+let enemies = [];
+let obstacles = [];
+
+// Spawn an enemy object
+function spawnEnemy() {
+  const enemy = {
+    x: canvas.width,
+    y: canvas.height - 150, // On ground level
+    width: 50,
+    height: 50,
+    speed: 3 + Math.random() * 2 // Random speed for variation
+  };
+  enemies.push(enemy);
+}
+
+// Spawn an obstacle object
+function spawnObstacle() {
+  const obstacle = {
+    x: canvas.width,
+    y: canvas.height - 120, // Slightly above the ground
+    width: 30,
+    height: 30,
+    speed: 3 // Fixed speed
+  };
+  obstacles.push(obstacle);
+}
+
+// Set intervals to spawn enemies and obstacles
+setInterval(spawnEnemy, 3000);
+setInterval(spawnObstacle, 4000);
+
+// Update enemy positions and remove off-screen enemies
+function updateEnemies() {
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    enemies[i].x -= enemies[i].speed;
+    if (enemies[i].x + enemies[i].width < 0) {
+      enemies.splice(i, 1);
+    }
+  }
+}
+
+// Update obstacle positions and remove off-screen obstacles
+function updateObstacles() {
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    obstacles[i].x -= obstacles[i].speed;
+    if (obstacles[i].x + obstacles[i].width < 0) {
+      obstacles.splice(i, 1);
+    }
+  }
+}
+
+// Draw enemy objects
+function drawEnemies() {
+  enemies.forEach(enemy => {
+    if (enemyImage.complete) {
+      ctx.drawImage(enemyImage, enemy.x, enemy.y, enemy.width, enemy.height);
+    } else {
+      ctx.fillStyle = "#FF0000"; // red rectangle fallback
+      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    }
+  });
+}
+
+// Draw obstacle objects
+function drawObstacles() {
+  obstacles.forEach(obstacle => {
+    if (obstacleImage.complete) {
+      ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    } else {
+      ctx.fillStyle = "#000000"; // black rectangle fallback
+      ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    }
+  });
+}
+
+// Keyboard controls for character movement
 window.addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight") {
     character.vx = character.speed;
@@ -93,24 +178,22 @@ window.addEventListener("keyup", (e) => {
 
 // Main game loop
 function gameLoop() {
-  // Clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  // Choose a background color based on the weather condition
+  // Choose background color based on weather condition
   let bgColor;
   if (weatherCondition === "Rain") {
-    bgColor = "#5F9EA0"; // cloudy-blue tone for rain
+    bgColor = "#5F9EA0"; // cloudy-blue for rain
   } else if (weatherCondition === "Snow") {
-    bgColor = "#FFFafa"; // pale wintry tone for snow
+    bgColor = "#FFFafa"; // pale wintry for snow
   } else {
-    bgColor = "#87CEEB"; // default clear sky blue
+    bgColor = "#87CEEB"; // clear sky blue
   }
   
-  // Fill the canvas with the chosen background color
   ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Draw a scrolling ground at the bottom
+  // Draw scrolling ground
   ctx.fillStyle = "#654321"; // brown ground
   ctx.fillRect(bgX, canvas.height - 100, canvas.width, 100);
   ctx.fillRect(bgX + canvas.width, canvas.height - 100, canvas.width, 100);
@@ -119,23 +202,36 @@ function gameLoop() {
     bgX = 0;
   }
   
-  // Update the character position based on its velocity
+  // Update and draw the character
   character.x += character.vx;
   if (character.x < 0) character.x = 0;
   if (character.x + character.width > canvas.width) {
     character.x = canvas.width - character.width;
   }
+  if (humanImage.complete) {
+    ctx.drawImage(humanImage, character.x, character.y, character.width, character.height);
+  } else {
+    ctx.fillStyle = "#FF00FF"; // magenta fallback
+    ctx.fillRect(character.x, character.y, character.width, character.height);
+  }
   
-  // Draw the character as a rectangle
-  ctx.fillStyle = character.color;
-  ctx.fillRect(character.x, character.y, character.width, character.height);
+  // Update and draw enemies and obstacles
+  updateEnemies();
+  updateObstacles();
+  drawEnemies();
+  drawObstacles();
+  
+  // Display user's city name at top-left
+  ctx.font = "24px Arial";
+  ctx.fillStyle = "#000";
+  ctx.fillText("City: " + userCity, 20, 40);
   
   requestAnimationFrame(gameLoop);
 }
 
 gameLoop();
 
-// Resize canvas if the window size changes
+// Adjust canvas on window resize
 window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;

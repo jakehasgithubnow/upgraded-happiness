@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dynamic Weather Side Scroller</title>
+  <title>Dynamic Weather Side Scroller with Character</title>
   <style>
     body {
       margin: 0;
@@ -16,105 +16,6 @@
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
-  
-  <script>
-    // Set up the canvas
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    
-    // Variables for scrolling ground
-    let bgX = 0;
-    const bgSpeed = 2;
-    
-    // Weather condition variable (default to "Clear")
-    let weatherCondition = "Clear"; 
-    
-    // OpenWeatherMap API key (replace if needed)
-    const apiKey = "8e6673a84806c8cda8ac340bcf071274";
-    // Coordinates for Ho Chi Minh City
-    const lat = 10.8231, lon = 106.6297;
-    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
-    
-    // Function to fetch weather data asynchronously with debug logging
-    async function fetchWeather() {
-      try {
-        console.log("Fetching weather data from:", weatherUrl);
-        const response = await fetch(weatherUrl);
-        if (!response.ok) {
-          console.error("Network response was not ok:", response.status);
-          weatherCondition = "Clear"; // fallback
-          return;
-        }
-        const data = await response.json();
-        console.log("Weather data received:", data);
-        // Use the main condition from the weather array (e.g., "Rain", "Snow", "Clear")
-        weatherCondition = data.weather[0].main;
-        console.log("Updated weather condition:", weatherCondition);
-      } catch (error) {
-        console.error("Fetch error:", error);
-        weatherCondition = "Clear";
-      }
-    }
-    
-    // Initiate the weather fetch
-    fetchWeather();
-    
-    // For additional debugging: a red circle that moves horizontally
-    let circleX = 0;
-    
-    // Main game loop
-    function gameLoop() {
-      // Clear the canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Choose a background color based on weatherCondition
-      let bgColor;
-      if (weatherCondition === "Rain") {
-        bgColor = "#5F9EA0"; // cloudy-blue tone for rain
-      } else if (weatherCondition === "Snow") {
-        bgColor = "#FFFafa"; // pale wintry tone for snow
-      } else {
-        bgColor = "#87CEEB"; // default clear sky blue
-      }
-      
-      // Fill the canvas with the chosen background color
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw a simple scrolling ground at the bottom
-      ctx.fillStyle = "#654321"; // brown ground
-      ctx.fillRect(bgX, canvas.height - 100, canvas.width, 100);
-      ctx.fillRect(bgX + canvas.width, canvas.height - 100, canvas.width, 100);
-      
-      // Update ground offset for scrolling effect
-      bgX -= bgSpeed;
-      if (bgX <= -canvas.width) {
-        bgX = 0;
-      }
-      
-      // Draw a moving red circle (for debugging animation)
-      ctx.beginPath();
-      ctx.arc(circleX, 50, 20, 0, Math.PI * 2);
-      ctx.fillStyle = "#FF0000"; // red circle
-      ctx.fill();
-      circleX += 5;
-      if (circleX > canvas.width) {
-        circleX = 0;
-      }
-      
-      requestAnimationFrame(gameLoop);
-    }
-    
-    // Start the game loop
-    gameLoop();
-    
-    // Update canvas size on window resize
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-  </script>
+  <script src="main.js"></script>
 </body>
 </html>
